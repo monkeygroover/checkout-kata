@@ -1,6 +1,8 @@
 /**
   * Created by monkeygroover on 10/12/15.
   */
+
+import cats.data.Xor
 import org.scalatest.{Matchers, FlatSpec}
 
 class CheckoutSpec
@@ -16,43 +18,49 @@ class CheckoutSpec
     "D" -> SKUPricer(unitPricer(15) :: Nil)
   )
 
-  "Checkout" should s"return expected result provided pricing information and single A item" in {
+  "Checkout" should "return expected result provided pricing information and single A item" in {
     val Items = "A" :: Nil
 
-    val ExpectedResult = Some(50)
+    val ExpectedResult = Xor.right(50)
 
     checkout(PricingData)(Items) shouldBe ExpectedResult
   }
 
-  "Checkout" should s"return expected result provided pricing information and 2 A items" in {
+  "Checkout" should "return expected result provided pricing information and 2 A items" in {
     val Items = "A" :: "A" :: Nil
 
-    val ExpectedResult = Some(100)
+    val ExpectedResult = Xor.right(100)
 
     checkout(PricingData)(Items) shouldBe ExpectedResult
   }
 
-  "Checkout" should s"return expected result provided pricing information and 3 A items" in {
+  "Checkout" should "return expected result provided pricing information and 3 A items" in {
     val Items = "A" :: "A" :: "A" :: Nil
 
-    val ExpectedResult = Some(130)
+    val ExpectedResult = Xor.right(130)
 
     checkout(PricingData)(Items) shouldBe ExpectedResult
   }
 
-  "Checkout" should s"return expected result provided pricing information and 4 A items" in {
+  "Checkout" should "return expected result provided pricing information and 4 A items" in {
     val Items = "A" :: "A" :: "A" :: "A" :: Nil
 
-    val ExpectedResult = Some(180)
+    val ExpectedResult = Xor.right(180)
 
     checkout(PricingData)(Items) shouldBe ExpectedResult
   }
 
-  "Checkout" should s"return expected result provided pricing information and a complex list of items" in {
+  "Checkout" should "return expected result provided pricing information and a complex list of items" in {
     val Items = "A" :: "A" :: "D" :: "B" :: "A" :: "C" :: "A" :: "B" :: "B" :: "B" :: Nil
 
-    val ExpectedResult = Some(305)
+    val ExpectedResult = Xor.right(305)
 
     checkout(PricingData)(Items) shouldBe ExpectedResult
+  }
+
+  "Checkout" should "return a failure if an unexpected item is provided" in {
+    val Items = "A" :: "K" :: "B" :: "B" :: Nil
+
+    checkout(PricingData)(Items) shouldBe Xor.left("'K' rule not found")
   }
 }
