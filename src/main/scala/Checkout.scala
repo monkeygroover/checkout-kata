@@ -13,13 +13,11 @@ trait Checkout {
 
 object Checkout extends Checkout {
   val checkout = (skuRules: Map[String, SKUPricer]) => (items: List[String]) =>
-    items.foldMap(x => Map(x -> 1))  // count how many of each "SKU" have been scanned
-      .map {
-      case (sku, skuCount) =>
-        skuRules.get(sku) match {
-          case Some(rule) => Xor.right(rule.getPrice(skuCount))
-          case None => Xor.left[String, Int](s"'$sku' rule not found")
+    items.foldMap(x => Map(x -> 1))  // create a map of SKU -> count of 'scanned' items
+      .map { case (sku, skuCount) =>
+      // get the rules for the SKU (if they exist) and map them to get the results for each SKU group
+        skuRules.get(sku).map(rule => Xor.right(rule.getPrice(skuCount)))
+          .getOrElse(Xor.left(s"'$sku' rule not found"))
         }
-    } // get the rules for the SKU and run it
-      .reduce(_ |+| _) // sum the results for each SKU
+      .reduce(_ |+| _) // sum the results for each SKU to get the final total
 }
