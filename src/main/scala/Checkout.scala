@@ -20,7 +20,7 @@ object Main extends App {
 
   import Checkout._, SKUPricer._
 
-  val items = "A" :: "A" :: "B" :: "A" :: "C" :: "A" :: "B" :: Nil
+  val items = "A" :: "A" :: "D" :: "B" :: "A" :: "C" :: "A" :: "B" :: "B" :: "B" :: "K" :: Nil
 
   val pricer = checkout(Map(
     "A" -> SKUPricer(specialPricer(3, 130) :: unitPricer(50) :: Nil),
