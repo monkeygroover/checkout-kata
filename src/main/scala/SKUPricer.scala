@@ -1,22 +1,21 @@
 /**
   * Created by monkeygroover on 09/12/15.
   */
+
+import SKUPricer._
 import cats.state._
 import cats.std.all._
+import cats.syntax.traverse._
 
 // rules, take a count, apply a rule and then pass the remaining count on to the next rule
 // returning the whole count at the end
 
-case class SKUPricer() {
-  import SKUPricer._
+case class SKUPricer(pricingRules: List[PriceState]) {
   def getPrice(itemCount: Int): Int = {
 
-    val priceCalculator = for {
-      sp <- specialPricer(3, 120)
-      up <- unitPricer(20)
-    } yield (sp + up)
+    val ruleSequence = pricingRules.sequenceU
 
-    priceCalculator.runA(itemCount).run
+    ruleSequence.runA(itemCount).run.reduce(_+_)
   }
 }
 

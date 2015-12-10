@@ -18,11 +18,16 @@ object Checkout extends Checkout {
 
 object Main extends App {
 
-  import Checkout._
+  import Checkout._, SKUPricer._
 
   val items = "A" :: "A" :: "B" :: "A" :: "C" :: "A" :: "B" :: Nil
 
-  val pricer = checkout(Map("A" -> SKUPricer(), "B" -> SKUPricer(), "C" -> SKUPricer()))
+  val pricer = checkout(Map(
+    "A" -> SKUPricer(specialPricer(3, 130) :: unitPricer(50) :: Nil),
+    "B" -> SKUPricer(specialPricer(2, 45) :: unitPricer(30) :: Nil),
+    "C" -> SKUPricer(unitPricer(20) :: Nil),
+    "D" -> SKUPricer(unitPricer(15) :: Nil))
+  )
 
   println(pricer(items))
 }
