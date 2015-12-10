@@ -58,6 +58,21 @@ class CheckoutSpec
     checkout(PricingData)(Items) shouldBe ExpectedResult
   }
 
+  "Checkout" should "return expected result provided different pricing information and a complex list of items" in {
+    val Items = "A" :: "A" :: "D" :: "B" :: "C" :: "A" :: "C" :: "A" :: "B" :: "B" :: Nil
+
+    val AlternativePricingData = Map(
+      "A" -> SKUPricer(specialPricer(3, 120) :: unitPricer(70) :: Nil),
+      "B" -> SKUPricer(specialPricer(2, 70) :: unitPricer(40) :: Nil),
+      "C" -> SKUPricer(unitPricer(25) :: Nil),
+      "D" -> SKUPricer(unitPricer(16) :: Nil)
+    )
+
+    val ExpectedResult = Xor.right(190 + 110 + 50 + 16)
+
+    checkout(AlternativePricingData)(Items) shouldBe ExpectedResult
+  }
+
   "Checkout" should "return a failure if an unexpected item is provided" in {
     val Items = "A" :: "K" :: "B" :: "B" :: Nil
 
