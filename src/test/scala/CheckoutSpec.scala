@@ -4,6 +4,7 @@
 
 import scalaz._
 import Scalaz._
+import syntax.nel._
 import org.scalatest.{Matchers, FlatSpec}
 
 class CheckoutSpec
@@ -22,41 +23,31 @@ class CheckoutSpec
   "Checkout" should "return expected result provided pricing information and single A item" in {
     val Items = "A" :: Nil
 
-    val ExpectedResult = \/-(50)
-
-    checkout(PricingData)(Items) shouldBe ExpectedResult
+    checkout(PricingData)(Items) shouldBe 50.success
   }
 
   "Checkout" should "return expected result provided pricing information and 2 A items" in {
     val Items = "A" :: "A" :: Nil
 
-    val ExpectedResult = \/-(100)
-
-    checkout(PricingData)(Items) shouldBe ExpectedResult
+    checkout(PricingData)(Items) shouldBe 100.success
   }
 
   "Checkout" should "return expected result provided pricing information and 3 A items" in {
     val Items = "A" :: "A" :: "A" :: Nil
 
-    val ExpectedResult = \/-(130)
-
-    checkout(PricingData)(Items) shouldBe ExpectedResult
+    checkout(PricingData)(Items) shouldBe 130.success
   }
 
   "Checkout" should "return expected result provided pricing information and 4 A items" in {
     val Items = "A" :: "A" :: "A" :: "A" :: Nil
 
-    val ExpectedResult = \/-(180)
-
-    checkout(PricingData)(Items) shouldBe ExpectedResult
+    checkout(PricingData)(Items) shouldBe 180.success
   }
 
   "Checkout" should "return expected result provided pricing information and a complex list of items" in {
     val Items = "A" :: "A" :: "D" :: "B" :: "A" :: "C" :: "A" :: "B" :: "B" :: "B" :: Nil
 
-    val ExpectedResult = \/-(305)
-
-    checkout(PricingData)(Items) shouldBe ExpectedResult
+    checkout(PricingData)(Items) shouldBe 305.success
   }
 
   "Checkout" should "return expected result provided different pricing information and a complex list of items" in {
@@ -69,14 +60,18 @@ class CheckoutSpec
       "D" -> SKUPricer(unitPricer(16) :: Nil)
     )
 
-    val ExpectedResult = \/-(190 + 110 + 50 + 16)
-
-    checkout(AlternativePricingData)(Items) shouldBe ExpectedResult
+    checkout(AlternativePricingData)(Items) shouldBe (190 + 110 + 50 + 16).success
   }
 
   "Checkout" should "return a failure if an unexpected item is provided" in {
     val Items = "A" :: "K" :: "B" :: "B" :: Nil
 
-    checkout(PricingData)(Items) shouldBe -\/("'K' rule not found")
+    checkout(PricingData)(Items) shouldBe NonEmptyList("'K' rule not found").failure
+  }
+
+  "Checkout" should "return failures if multiple unexpected items are provided" in {
+    val Items = "A" :: "K" :: "B" :: "B" :: "X" :: Nil
+
+    checkout(PricingData)(Items) shouldBe NonEmptyList("'K' rule not found", "'X' rule not found").failure
   }
 }
