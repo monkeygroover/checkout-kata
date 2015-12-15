@@ -3,14 +3,13 @@
   */
 
 import SKUPricer._
-import cats.state._
-import cats.std.all._
-import cats.syntax.traverse._
+import scalaz._
+import Scalaz._
 
 case class SKUPricer(pricingRules: List[PriceRule]) {
   def getPrice(itemCount: Int): Int =
   // run the rules in order, then sum all the results
-    pricingRules.sequenceU.runA(itemCount).run.reduce(_ + _)
+    pricingRules.sequenceU.eval(itemCount).sum
 }
 
 object SKUPricer {
