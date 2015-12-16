@@ -6,19 +6,31 @@ import SKUPricer._
 import scalaz._
 import Scalaz._
 
-case class SKUPricer(pricingRules: List[PriceRule]) {
+trait SKUPricer{
+  def getPrice(itemCount: Int): Int
+}
+
+case class SKULinearPricer(pricingRules: List[PriceRule]) extends SKUPricer {
   def getPrice(itemCount: Int): Int =
   // run the rules in order, then sum all the results
     pricingRules.sequenceU.eval(itemCount).sum
+}
+
+case class SKUBestPricer(pricingRules: List[PriceRule]) extends SKUPricer {
+  def getPrice(itemCount: Int): Int =
+    // run the rules in all permutations and return the smallest result
+    pricingRules.permutations.map {
+      _.sequenceU.eval(itemCount).sum
+    }.min
 }
 
 object SKUPricer {
   // pricing rules use a State monad to pass the remaining item count along the chain of rules
   type PriceRule = State[Int, Int]
 
-  def specialPricer(groupSize: Int, discountPrice: Int): PriceRule = State(items => (items % groupSize, items / groupSize * discountPrice) )
+  def specialPriceRule(groupSize: Int, discountPrice: Int): PriceRule = State(items => (items % groupSize, items / groupSize * discountPrice) )
 
-  def unitPricer(unitPrice: Int): PriceRule = State(items => (0, items * unitPrice))
+  def unitPriceRule(unitPrice: Int): PriceRule = State(items => (0, items * unitPrice))
 }
 
 
