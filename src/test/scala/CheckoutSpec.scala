@@ -4,14 +4,13 @@
 
 import scalaz._
 import Scalaz._
-import syntax.nel._
 import org.scalatest.{Matchers, FlatSpec}
 
 class CheckoutSpec
   extends FlatSpec
   with Matchers {
 
-  import Checkout._, SKUPricer._
+  import SKUPricer._
 
   val PricingData = Map(
     "A" -> SKUPricer(specialPricer(3, 130) :: unitPricer(50) :: Nil),
@@ -20,34 +19,36 @@ class CheckoutSpec
     "D" -> SKUPricer(unitPricer(15) :: Nil)
   )
 
+  val checkout = Checkout(PricingData)
+
   "Checkout" should "return expected result provided pricing information and single A item" in {
     val Items = "A" :: Nil
 
-    checkout(PricingData)(Items) shouldBe 50.success
+    checkout.calculateTotal(Items) shouldBe 50.success
   }
 
   "Checkout" should "return expected result provided pricing information and 2 A items" in {
     val Items = "A" :: "A" :: Nil
 
-    checkout(PricingData)(Items) shouldBe 100.success
+    checkout.calculateTotal(Items) shouldBe 100.success
   }
 
   "Checkout" should "return expected result provided pricing information and 3 A items" in {
     val Items = "A" :: "A" :: "A" :: Nil
 
-    checkout(PricingData)(Items) shouldBe 130.success
+    checkout.calculateTotal(Items) shouldBe 130.success
   }
 
   "Checkout" should "return expected result provided pricing information and 4 A items" in {
     val Items = "A" :: "A" :: "A" :: "A" :: Nil
 
-    checkout(PricingData)(Items) shouldBe 180.success
+    checkout.calculateTotal(Items) shouldBe 180.success
   }
 
   "Checkout" should "return expected result provided pricing information and a complex list of items" in {
     val Items = "A" :: "A" :: "D" :: "B" :: "A" :: "C" :: "A" :: "B" :: "B" :: "B" :: Nil
 
-    checkout(PricingData)(Items) shouldBe 305.success
+    checkout.calculateTotal(Items) shouldBe 305.success
   }
 
   "Checkout" should "return expected result provided different pricing information and a complex list of items" in {
@@ -60,18 +61,18 @@ class CheckoutSpec
       "D" -> SKUPricer(unitPricer(16) :: Nil)
     )
 
-    checkout(AlternativePricingData)(Items) shouldBe (190 + 110 + 50 + 16).success
+    Checkout(AlternativePricingData).calculateTotal(Items) shouldBe (190 + 110 + 50 + 16).success
   }
 
   "Checkout" should "return a failure if an unexpected item is provided" in {
     val Items = "A" :: "K" :: "B" :: "B" :: Nil
 
-    checkout(PricingData)(Items) shouldBe NonEmptyList("'K' rule not found").failure
+    checkout.calculateTotal(Items) shouldBe NonEmptyList("'K' rule not found").failure
   }
 
   "Checkout" should "return failures if multiple unexpected items are provided" in {
     val Items = "A" :: "K" :: "B" :: "B" :: "X" :: Nil
 
-    checkout(PricingData)(Items) shouldBe NonEmptyList("'K' rule not found", "'X' rule not found").failure
+    checkout.calculateTotal(Items) shouldBe NonEmptyList("'K' rule not found", "'X' rule not found").failure
   }
 }

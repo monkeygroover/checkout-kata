@@ -5,12 +5,12 @@
 import scalaz._
 import Scalaz._
 
-trait Checkout {
-  val checkout: Map[String, SKUPricer] => List[String] => ValidationNel[String, Int]
+trait TotalCalculator {
+  val calculateTotal: List[String] => ValidationNel[String, Int]
 }
 
-object Checkout extends Checkout {
-  val checkout = (skuRules: Map[String, SKUPricer]) => (items: List[String]) =>
+case class Checkout(skuRules: Map[String, SKUPricer]) extends TotalCalculator {
+  val calculateTotal = (items: List[String]) =>
     items.foldMap(x => Map(x -> 1))  // create a map of SKU -> count of 'scanned' items
       .map { case (sku, skuCount) =>
       // get the rules for the SKU (if they exist) and map them to get the results for each SKU group
