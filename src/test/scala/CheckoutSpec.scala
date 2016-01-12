@@ -3,13 +3,14 @@
   */
 
 import cats.data.Xor
-import org.scalatest.{Matchers, FlatSpec}
+import cats.syntax.validated._
+import org.scalatest.{FlatSpec, Matchers}
 
 class CheckoutSpec
   extends FlatSpec
   with Matchers {
 
-  import Checkout._, SKUPricer._
+  import SKUPricer._
 
   val PricingData = Map(
     "A" -> SKUPricer(specialPricer(3, 130) :: unitPricer(50) :: Nil),
@@ -21,41 +22,31 @@ class CheckoutSpec
   "Checkout" should "return expected result provided pricing information and single A item" in {
     val Items = "A" :: Nil
 
-    val ExpectedResult = Xor.right(50)
-
-    checkout(PricingData)(Items) shouldBe ExpectedResult
+    Checkout(PricingData).calculateTotal(Items) shouldBe 50.valid
   }
 
   "Checkout" should "return expected result provided pricing information and 2 A items" in {
     val Items = "A" :: "A" :: Nil
 
-    val ExpectedResult = Xor.right(100)
-
-    checkout(PricingData)(Items) shouldBe ExpectedResult
+    Checkout(PricingData).calculateTotal(Items) shouldBe 100.valid
   }
 
   "Checkout" should "return expected result provided pricing information and 3 A items" in {
     val Items = "A" :: "A" :: "A" :: Nil
 
-    val ExpectedResult = Xor.right(130)
-
-    checkout(PricingData)(Items) shouldBe ExpectedResult
+    Checkout(PricingData).calculateTotal(Items) shouldBe 130.valid
   }
 
   "Checkout" should "return expected result provided pricing information and 4 A items" in {
     val Items = "A" :: "A" :: "A" :: "A" :: Nil
 
-    val ExpectedResult = Xor.right(180)
-
-    checkout(PricingData)(Items) shouldBe ExpectedResult
+    Checkout(PricingData).calculateTotal(Items) shouldBe 180.valid
   }
 
   "Checkout" should "return expected result provided pricing information and a complex list of items" in {
     val Items = "A" :: "A" :: "D" :: "B" :: "A" :: "C" :: "A" :: "B" :: "B" :: "B" :: Nil
 
-    val ExpectedResult = Xor.right(305)
-
-    checkout(PricingData)(Items) shouldBe ExpectedResult
+    Checkout(PricingData).calculateTotal(Items) shouldBe 305.valid
   }
 
   "Checkout" should "return expected result provided different pricing information and a complex list of items" in {
@@ -68,14 +59,12 @@ class CheckoutSpec
       "D" -> SKUPricer(unitPricer(16) :: Nil)
     )
 
-    val ExpectedResult = Xor.right(190 + 110 + 50 + 16)
-
-    checkout(AlternativePricingData)(Items) shouldBe ExpectedResult
+    Checkout(AlternativePricingData).calculateTotal(Items) shouldBe (190 + 110 + 50 + 16).valid
   }
 
   "Checkout" should "return a failure if an unexpected item is provided" in {
     val Items = "A" :: "K" :: "B" :: "B" :: Nil
 
-    checkout(PricingData)(Items) shouldBe Xor.left("'K' rule not found")
+    Checkout(PricingData).calculateTotal(Items) shouldBe "'K' rule not found".invalidNel
   }
 }

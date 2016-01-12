@@ -18,3 +18,7 @@ project/plugins/project/
 *.iws
 .idea
 out
+
+#ensime
+*.ensime
+.ensime_cache/
